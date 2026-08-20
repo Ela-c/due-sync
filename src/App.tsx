@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -28,7 +28,86 @@ import {
 
 const UNIT_PAGE_SIZE = 4;
 
-type Step = "units" | "tasks";
+type Step = "units" | "tasks" | "software" | "exporting";
+type ExportSoftware = "trello" | "notion";
+
+const SOFTWARE_OPTIONS: Array<{
+	id: ExportSoftware;
+	label: string;
+	description: string;
+}> = [
+	{
+		id: "trello",
+		label: "Trello",
+		description: "Boards and cards",
+	},
+	{
+		id: "notion",
+		label: "Notion",
+		description: "Pages and databases",
+	},
+];
+
+function TrelloIcon() {
+	return (
+		<svg
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+			className="size-5"
+			fill="none"
+		>
+			<rect
+				x="2.5"
+				y="2.5"
+				width="19"
+				height="19"
+				rx="3.5"
+				className="fill-primary"
+			/>
+			<rect
+				x="6.5"
+				y="6.5"
+				width="4.8"
+				height="11"
+				rx="1.6"
+				className="fill-primary-foreground"
+			/>
+			<rect
+				x="12.9"
+				y="6.5"
+				width="4.8"
+				height="8"
+				rx="1.6"
+				className="fill-primary-foreground"
+			/>
+		</svg>
+	);
+}
+
+function NotionIcon() {
+	return (
+		<svg
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+			className="size-5"
+			fill="none"
+		>
+			<rect
+				x="3"
+				y="3"
+				width="18"
+				height="18"
+				rx="2.5"
+				className="fill-card stroke-foreground"
+				strokeWidth="1.8"
+			/>
+			<path
+				d="M8 16V8.2l1.5.3 4.5 6V8h2v7.8l-1.4-.2L10 9.6V16H8Z"
+				className="fill-foreground"
+			/>
+		</svg>
+	);
+}
 
 export default function App() {
 	const [step, setStep] = useState<Step>("units");
@@ -42,6 +121,8 @@ export default function App() {
 	const [loadingTasks, setLoadingTasks] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [currentPage, setCurrentPage] = useState(1);
+	const [selectedSoftware, setSelectedSoftware] =
+		useState<ExportSoftware | null>(null);
 
 	const totalPages = Math.max(1, Math.ceil(units.length / UNIT_PAGE_SIZE));
 	const paginatedUnits = useMemo(() => {
@@ -51,6 +132,24 @@ export default function App() {
 	}, [currentPage, units]);
 
 	const selectedCount = selectedTaskIds.size;
+	const selectedSoftwareLabel = selectedSoftware
+		? (SOFTWARE_OPTIONS.find((option) => option.id === selectedSoftware)
+				?.label ?? selectedSoftware)
+		: "";
+
+	useEffect(() => {
+		if (step !== "exporting" || !selectedSoftware) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setStep("software");
+		}, 15000);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [step, selectedSoftware]);
 
 	const loadUnits = async () => {
 		console.log("Loading units from authenticated tab...");
@@ -138,6 +237,14 @@ export default function App() {
 		setSelectedTaskIds(new Set());
 	};
 
+	const startExport = () => {
+		if (!selectedSoftware) {
+			return;
+		}
+
+		setStep("exporting");
+	};
+
 	return (
 		<section className="min-h-full bg-background p-3 text-left text-foreground">
 			<Card className="shadow-none">
@@ -147,8 +254,12 @@ export default function App() {
 					</CardTitle>
 					<CardDescription className="text-xs text-muted-foreground">
 						{step === "units"
-							? "Step 1/2: Choose one unit"
-							: "Step 2/2: Choose tasks to export"}
+							? "Step 1/3: Choose one unit"
+							: step === "tasks"
+								? "Step 2/3: Choose tasks to export"
+								: step === "software"
+									? "Step 3/3: Select export software"
+									: "Export in progress"}
 					</CardDescription>
 				</CardHeader>
 
@@ -382,6 +493,87 @@ export default function App() {
 							)}
 						</>
 					) : null}
+
+					{step === "software" ? (
+						<>
+							<div className="rounded-md border border-border bg-secondary/50 p-2 text-xs">
+								<p className="font-medium text-foreground">
+									Ready to export
+								</p>
+								<p className="text-muted-foreground">
+									{selectedTaskIds.size} tasks from{" "}
+									{selectedUnit?.code}
+								</p>
+							</div>
+
+							<div className="space-y-2">
+								{SOFTWARE_OPTIONS.map((option) => {
+									const isSelected =
+										selectedSoftware === option.id;
+									return (
+										<button
+											key={option.id}
+											type="button"
+											onClick={() =>
+												setSelectedSoftware(option.id)
+											}
+											aria-pressed={isSelected}
+											className={`flex w-full items-center justify-between rounded-md border p-3 text-left transition-colors ${
+												isSelected
+													? "border-primary bg-primary/5"
+													: "border-border bg-card hover:border-primary/30 hover:bg-primary/5"
+											}`}
+										>
+											<div className="flex items-center gap-2">
+												<span className="text-foreground">
+													{option.id === "trello" ? (
+														<TrelloIcon />
+													) : (
+														<NotionIcon />
+													)}
+												</span>
+												<div>
+													<p className="text-sm font-semibold text-foreground">
+														{option.label}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														{option.description}
+													</p>
+												</div>
+											</div>
+											<span
+												className={`size-4 rounded-full border ${
+													isSelected
+														? "border-primary bg-primary"
+														: "border-border bg-card"
+												}`}
+												aria-hidden="true"
+											/>
+										</button>
+									);
+								})}
+							</div>
+						</>
+					) : null}
+
+					{step === "exporting" ? (
+						<div className="rounded-md border border-border bg-secondary/50 p-3">
+							<div className="flex items-center gap-2">
+								<span
+									className="size-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary"
+									aria-hidden="true"
+								/>
+								<p className="text-sm font-medium text-foreground">
+									exporting tasks to{" "}
+									{selectedSoftwareLabel.toLowerCase()} ...
+								</p>
+							</div>
+							<p className="mt-1 text-xs text-muted-foreground">
+								Please keep this popup open while we prepare
+								your export.
+							</p>
+						</div>
+					) : null}
 				</CardContent>
 
 				<CardFooter className="flex justify-between gap-2">
@@ -396,6 +588,21 @@ export default function App() {
 						>
 							Back to Units
 						</Button>
+					) : step === "software" ? (
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => {
+								setStep("tasks");
+								setError("");
+							}}
+						>
+							Back to Tasks
+						</Button>
+					) : step === "exporting" ? (
+						<span className="text-xs text-muted-foreground">
+							Exporting selected tasks...
+						</span>
 					) : (
 						<span className="text-xs text-muted-foreground">
 							Open OnTrack first to authenticate.
@@ -407,12 +614,19 @@ export default function App() {
 							type="button"
 							disabled={selectedTaskIds.size === 0}
 							onClick={() => {
-								alert(
-									`Ready to export ${selectedTaskIds.size} tasks.`,
-								);
+								setSelectedSoftware(null);
+								setStep("software");
 							}}
 						>
 							Continue ({selectedTaskIds.size})
+						</Button>
+					) : step === "software" ? (
+						<Button
+							type="button"
+							disabled={!selectedSoftware}
+							onClick={startExport}
+						>
+							Export to {selectedSoftwareLabel || "Software"}
 						</Button>
 					) : null}
 				</CardFooter>
