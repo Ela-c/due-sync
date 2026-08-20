@@ -1,0 +1,14 @@
+{
+	"manifest_version": 3,
+	"name": "DueSync",
+	"description": "A Chrome extension that syncs your due dates across multiple platforms.",
+	"version": "1.0.0",
+	"permissions": ["scripting", "tabs", "storage"],
+	"host_permissions": ["https://*.ontrack.deakin.edu.au/*"],
+	"action": {
+		"default_popup": "index.html",
+		"default_icon": {
+			"32": "icon/duesync-icon32.png"
+		}
+	}
+}
