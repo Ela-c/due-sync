@@ -81,7 +81,6 @@ async function fetchAuthContext() {
 
 export async function fetchUnitsFromAuthenticatedTab() {
   const { username, authToken } = await fetchAuthContext();
-  console.log("Fetched auth context:", { username, authToken });
   const tab = await getActiveOntrackTab();
   return executeScriptInTab<Unit[]>({
     target: { tabId: tab.id! },

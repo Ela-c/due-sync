@@ -3,8 +3,12 @@
 	"name": "DueSync",
 	"description": "A Chrome extension that syncs your due dates across multiple platforms.",
 	"version": "1.0.0",
-	"permissions": ["scripting", "tabs", "storage"],
-	"host_permissions": ["https://*.ontrack.deakin.edu.au/*"],
+	"permissions": ["scripting", "tabs", "storage", "identity"],
+	"host_permissions": [
+		"https://*.ontrack.deakin.edu.au/*",
+		"https://trello.com/*",
+		"https://api.trello.com/*"
+	],
 	"action": {
 		"default_popup": "index.html",
 		"default_icon": {
