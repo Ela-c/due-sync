@@ -4,6 +4,12 @@ DueSync is a Chrome extension popup that helps students export OnTrack assessmen
 
 The current production path supports Trello: select a unit, choose tasks, connect Trello, pick a board/list, and create cards with due dates.
 
+## Demo
+
+[![Due Sync Demo](https://img.youtube.com/vi/cNj3M_I0o2U/maxresdefault.jpg)](https://youtu.be/cNj3M_I0o2U)
+
+Click the image above to watch the demo video.
+
 ## Features
 
 - Reads units and task definitions from an authenticated OnTrack tab.
